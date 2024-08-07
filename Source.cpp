@@ -60,7 +60,12 @@ public:
 
 	bool OnUserUpdate(float fElapsedTime) override
 	{
-		if (GetMouse(olc::Mouse::LEFT).bPressed) {
+
+		if (GetMouse(olc::Mouse::LEFT).bHeld && selected != -1) {
+			spline.points[selected] = GetMousePos();
+		}
+		else {
+			selected = -1;
 			for (int i = 0; i < spline.points.size(); i++) {
 				auto p = spline.points[i];
 				auto m = GetMousePos();
@@ -70,13 +75,6 @@ public:
 			}
 		}
 
-		if (GetMouse(olc::Mouse::LEFT).bHeld && selected != -1) {
-			spline.points[selected] = GetMousePos();
-		}
-
-		if (GetMouse(olc::Mouse::LEFT).bReleased) {
-			selected = -1;
-		}
 
 
 		Clear(olc::BLACK);
