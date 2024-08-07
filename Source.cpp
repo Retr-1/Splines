@@ -22,12 +22,14 @@ public:
 		float v2 = -3 * ttt + 4 * tt + t;
 		float v3 = ttt - tt;
 
-		return points[i] * v0 + points[i + 1] * v1 + points[i + 2] * v2 + points[i + 3] * v3;
+		int x = points[i].x * v0 + points[i + 1].x * v1 + points[i + 2].x * v2 + points[i + 3].x * v3;
+		int y = points[i].y * v0 + points[i + 1].y * v1 + points[i + 2].y * v2 + points[i + 3].y * v3;
+		return { x,y };
 	}
 };
 
 // Override base class with your custom functionality
-class Example : public olc::PixelGameEngine
+class Window : public olc::PixelGameEngine
 {
 	Spline spline;
 	int selected = -1;
@@ -39,10 +41,10 @@ class Example : public olc::PixelGameEngine
 	}
 
 public:
-	Example()
+	Window()
 	{
 		// Name your application
-		sAppName = "Example";
+		sAppName = "Window";
 	}
 
 public:
@@ -75,10 +77,13 @@ public:
 			}
 		}
 
-
-
 		Clear(olc::BLACK);
 		drawPoints(spline.points);
+		for (float t = 0; t < spline.points.size() - 3; t += 0.01f) {
+			auto point = spline.getPointByT(t);
+			//std::cout << point.str();
+			Draw(point);
+		}
 
 		return true;
 	}
@@ -86,7 +91,7 @@ public:
 
 int main()
 {
-	Example win;
+	Window win;
 	if (win.Construct(800, 800, 1, 1))
 		win.Start();
 	return 0;
