@@ -3,9 +3,9 @@
 
 class Spline {
 public:
-	std::vector<olc::vi2d> points;
+	std::vector<olc::vf2d> points;
 
-	olc::vi2d getPointByT(float t) {
+	olc::vf2d getPointByT(float t) {
 
 		/*cubic e0 = { -1,2,-1 };
 		cubic e1 = { 3,-5,2 };
@@ -19,12 +19,12 @@ public:
 		float ttt = tt * t;
 
 		float v0 = -ttt + 2 * tt - t;
-		float v1 = 3 * ttt - 5 * tt + 2 * t;
+		float v1 = 3 * ttt - 5 * tt + 2;
 		float v2 = -3 * ttt + 4 * tt + t;
 		float v3 = ttt - tt;
 
-		int x = 0.5f * (points[i].x * v0 + points[i + 1].x * v1 + points[i + 2].x * v2 + points[i + 3].x * v3);
-		int y = 0.5f * (points[i].y * v0 + points[i + 1].y * v1 + points[i + 2].y * v2 + points[i + 3].y * v3);
+		float x = 0.5f * (points[i].x * v0 + points[i + 1].x * v1 + points[i + 2].x * v2 + points[i + 3].x * v3);
+		float y = 0.5f * (points[i].y * v0 + points[i + 1].y * v1 + points[i + 2].y * v2 + points[i + 3].y * v3);
 		return { x,y };
 	}
 };
@@ -35,7 +35,7 @@ class Window : public olc::PixelGameEngine
 	Spline spline;
 	int selected = -1;
 
-	void drawPoints(const std::vector<olc::vi2d>& points) {
+	void drawPoints(const std::vector<olc::vf2d>& points) {
 		for (int i = 0; i< spline.points.size(); i++) {
 			FillCircle(spline.points[i], 10, i==selected ? olc::YELLOW : olc::GREY);
 		}
@@ -54,7 +54,7 @@ public:
 		// Called once at the start, so create things here
 		int x = 100;
 		for (int i = 0; i < 10; i++) {
-			spline.points.push_back(olc::vi2d(x, 300));
+			spline.points.push_back(olc::vf2d(x, 300));
 			x += 50;
 		}
 		return true;
