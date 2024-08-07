@@ -5,14 +5,15 @@ class Spline {
 public:
 	std::vector<olc::vi2d> points;
 
-	olc::vi2d getPointByT(float p) {
+	olc::vi2d getPointByT(float t) {
 
 		/*cubic e0 = { -1,2,-1 };
 		cubic e1 = { 3,-5,2 };
 		cubic e2 = { -3, 4, 1 };
 		cubic e3 = { 1,-1,0 };*/
-		int i = (int)p;
-		float t = p - i;
+
+		int i = (int)t;
+		t = t - i;
 
 		float tt = t * t;
 		float ttt = tt * t;
@@ -22,8 +23,8 @@ public:
 		float v2 = -3 * ttt + 4 * tt + t;
 		float v3 = ttt - tt;
 
-		int x = points[i].x * v0 + points[i + 1].x * v1 + points[i + 2].x * v2 + points[i + 3].x * v3;
-		int y = points[i].y * v0 + points[i + 1].y * v1 + points[i + 2].y * v2 + points[i + 3].y * v3;
+		int x = 0.5f * (points[i].x * v0 + points[i + 1].x * v1 + points[i + 2].x * v2 + points[i + 3].x * v3);
+		int y = 0.5f * (points[i].y * v0 + points[i + 1].y * v1 + points[i + 2].y * v2 + points[i + 3].y * v3);
 		return { x,y };
 	}
 };
