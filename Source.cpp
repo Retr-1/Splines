@@ -1,24 +1,24 @@
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
 
-//typedef float cubic[4];
-//
-//float ev(cubic eq, float x) {
-//	return eq[0] + eq[1] * x + eq[2] * x * x + eq[3] * x * x * x;
-//}
-
-struct cubic {
-	float eq[4];
-
-	float ev(float x) {
-		return eq[0] + eq[1] * x + eq[2] * x * x + eq[3] * x * x * x;
-	}
-};
 
 class Spline {
+private:
+	float calcLength(int i) {
+		const float step = 0.01f;
+		float l = 0;
+		for (float t = i; t + step < 1+i; t += step) {
+			auto p1 = getPointByT(t);
+			auto p2 = getPointByT(t + step);
+			l += (p1 - p2).mag();
+		}
+		return l;
+	}
+
 public:
 	std::vector<olc::vf2d> points;
 	float totalLength = 0;
+	std::vector<float> lengths;
 
 	olc::vf2d getPointByT(float t) {
 		int i = (int)t;
@@ -56,9 +56,9 @@ public:
 
 	olc::vf2d getPointByDistance(float distance) {
 		for (int i = 0; i < points.size() - 3; i++) {
-			float currLength = getLength(i);
+			float currLength = lengths[i];
 			if (distance < currLength) {
-				return getPointByT(distance / currLength);
+				return getPointByT(distance / currLength + i);
 			}
 			else {
 				distance -= currLength;
@@ -69,9 +69,9 @@ public:
 
 	olc::vf2d getDirByDistance(float distance) {
 		for (int i = 0; i < points.size() - 3; i++) {
-			float currLength = getLength(i);
+			float currLength = lengths[i];
 			if (distance < currLength) {
-				return getDirByT(distance / currLength);
+				return getDirByT(distance / currLength + i);
 			}
 			else {
 				distance -= currLength;
@@ -80,33 +80,12 @@ public:
 		throw std::invalid_argument("Distance bigger than total length!");
 	}
 
-	float getLength(int i) {
-		cubic F0 = { 0, -1, 2, -1 };
-		cubic F1 = { 2, 0, -5, 3 };
-		cubic F2 = { 0, 1, 4, -3 };
-		cubic F3 = { 0,0,-1,1 };
-		
-		float v0 = 8 / 27.0f;//-(F0.ev(1 / 3.0f) - F0.ev(0)) + (F0.ev(1) - F0.ev(1 / 3.0f));
-		float v1 = 2;//-(F1.ev(1) - F1.ev(0));
-		float v2 = 2;//F2.ev(1) - F2.ev(0);
-		float v3 = 8 / 27.0f;//-(F3.ev(2 / 3.0f) - F3.ev(0)) + F3.ev(1) - F3.ev(2 / 3.0f);
-
-		float x = 0.5f * (points[i].x * v0 + points[i + 1].x * v1 + points[i + 2].x * v2 + points[i + 3].x * v3);
-		float y = 0.5f * (points[i].y * v0 + points[i + 1].y * v1 + points[i + 2].y * v2 + points[i + 3].y * v3);
-		return x + y;
-	}
-
-	//float getTotalLength() {
-	//	float sum = 0;
-	//	for (int i = 0; i < points.size()-3; i++) {
-	//		sum += getLength(i);
-	//	}
-	//}
-
 	void recalculate() {
 		totalLength = 0;
+		lengths.resize(points.size()-3);
 		for (int i = 0; i < points.size() - 3; i++) {
-			totalLength += getLength(i);
+			lengths[i] = calcLength(i);
+			totalLength += lengths[i];
 		}
 	}
 };
@@ -136,7 +115,7 @@ public:
 	{
 		// Called once at the start, so create things here
 		int x = 100;
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 10; i++) {
 			spline.points.push_back(olc::vf2d(x, 300));
 			x += 50;
 		}
