@@ -18,6 +18,7 @@ struct cubic {
 class Spline {
 public:
 	std::vector<olc::vf2d> points;
+	float totalLength = 0;
 
 	olc::vf2d getPointByT(float t) {
 		int i = (int)t;
@@ -53,6 +54,32 @@ public:
 		return { x,y };
 	}
 
+	olc::vf2d getPointByDistance(float distance) {
+		for (int i = 0; i < points.size() - 3; i++) {
+			float currLength = getLength(i);
+			if (distance < currLength) {
+				return getPointByT(distance / currLength);
+			}
+			else {
+				distance -= currLength;
+			}
+		}
+		throw std::invalid_argument("Distance bigger than total length!");
+	}
+
+	olc::vf2d getDirByDistance(float distance) {
+		for (int i = 0; i < points.size() - 3; i++) {
+			float currLength = getLength(i);
+			if (distance < currLength) {
+				return getDirByT(distance / currLength);
+			}
+			else {
+				distance -= currLength;
+			}
+		}
+		throw std::invalid_argument("Distance bigger than total length!");
+	}
+
 	float getLength(int i) {
 		cubic F0 = { 0, -1, 2, -1 };
 		cubic F1 = { 2, 0, -5, 3 };
@@ -68,6 +95,20 @@ public:
 		float y = 0.5f * (points[i].y * v0 + points[i + 1].y * v1 + points[i + 2].y * v2 + points[i + 3].y * v3);
 		return x + y;
 	}
+
+	//float getTotalLength() {
+	//	float sum = 0;
+	//	for (int i = 0; i < points.size()-3; i++) {
+	//		sum += getLength(i);
+	//	}
+	//}
+
+	void recalculate() {
+		totalLength = 0;
+		for (int i = 0; i < points.size() - 3; i++) {
+			totalLength += getLength(i);
+		}
+	}
 };
 
 // Override base class with your custom functionality
@@ -75,7 +116,7 @@ class Window : public olc::PixelGameEngine
 {
 	Spline spline;
 	int selected = -1;
-	float carT = 0;
+	float carDistance = 0;
 
 	void drawPoints(const std::vector<olc::vf2d>& points) {
 		for (int i = 0; i< spline.points.size(); i++) {
@@ -99,6 +140,7 @@ public:
 			spline.points.push_back(olc::vf2d(x, 300));
 			x += 50;
 		}
+		spline.recalculate();
 		return true;
 		
 	}
@@ -108,6 +150,8 @@ public:
 
 		if (GetMouse(olc::Mouse::LEFT).bHeld && selected != -1) {
 			spline.points[selected] = GetMousePos();
+			spline.recalculate();
+			std::cout << "Spline length: " << spline.totalLength << '\n';
 		}
 		else {
 			selected = -1;
@@ -120,8 +164,8 @@ public:
 			}
 		}
 
-		carT += fElapsedTime;
-		carT = fmodf(carT, spline.points.size()-3);
+		carDistance += fElapsedTime * 100;
+		carDistance = fmodf(carDistance, spline.totalLength);
 
 		Clear(olc::BLACK);
 		drawPoints(spline.points);
@@ -130,8 +174,8 @@ public:
 			//std::cout << point.str();
 			Draw(point);
 		}
-		auto carPos = spline.getPointByT(carT);
-		auto carDir = (spline.getDirByT(carT).norm())*10;
+		auto carPos = spline.getPointByDistance(carDistance);
+		auto carDir = (spline.getDirByDistance(carDistance).norm())*10;
 		auto carN = olc::vf2d(carDir.y, -carDir.x);
 		FillTriangle(carPos + carN, carPos - carN, carPos + carDir, olc::RED);
 
