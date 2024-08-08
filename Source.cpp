@@ -86,10 +86,10 @@ public:
 		cubic F2 = { 0, 1, 4, -3 };
 		cubic F3 = { 0,0,-1,1 };
 		
-		float v0 = -(F0.ev(1 / 3.0f) - F0.ev(0)) + (F0.ev(1) - F0.ev(1 / 3.0f));
-		float v1 = -(F1.ev(1) - F1.ev(0));
-		float v2 = F2.ev(1) - F2.ev(0);
-		float v3 = -(F3.ev(2 / 3.0f) - F3.ev(0)) + F3.ev(1) - F3.ev(2 / 3.0f);
+		float v0 = 8 / 27.0f;//-(F0.ev(1 / 3.0f) - F0.ev(0)) + (F0.ev(1) - F0.ev(1 / 3.0f));
+		float v1 = 2;//-(F1.ev(1) - F1.ev(0));
+		float v2 = 2;//F2.ev(1) - F2.ev(0);
+		float v3 = 8 / 27.0f;//-(F3.ev(2 / 3.0f) - F3.ev(0)) + F3.ev(1) - F3.ev(2 / 3.0f);
 
 		float x = 0.5f * (points[i].x * v0 + points[i + 1].x * v1 + points[i + 2].x * v2 + points[i + 3].x * v3);
 		float y = 0.5f * (points[i].y * v0 + points[i + 1].y * v1 + points[i + 2].y * v2 + points[i + 3].y * v3);
