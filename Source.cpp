@@ -32,8 +32,9 @@ public:
 		float v2 = -3 * ttt + 4 * tt + t;
 		float v3 = ttt - tt;
 
-		float x = 0.5f * (points[i].x * v0 + points[i + 1].x * v1 + points[i + 2].x * v2 + points[i + 3].x * v3);
-		float y = 0.5f * (points[i].y * v0 + points[i + 1].y * v1 + points[i + 2].y * v2 + points[i + 3].y * v3);
+		int s = points.size();
+		float x = 0.5f * (points[i % s].x * v0 + points[(i + 1) % s].x * v1 + points[(i + 2) % s].x * v2 + points[(i + 3) % s].x * v3);
+		float y = 0.5f * (points[i % s].y * v0 + points[(i + 1) % s].y * v1 + points[(i + 2) % s].y * v2 + points[(i + 3) % s].y * v3);
 		return { x,y };
 	}
 
@@ -49,8 +50,9 @@ public:
 		float v2 = -9 * tt + 8 * t + 1;
 		float v3 = 3*tt - 2*t;
 
-		float x = 0.5f * (points[i].x * v0 + points[i + 1].x * v1 + points[i + 2].x * v2 + points[i + 3].x * v3);
-		float y = 0.5f * (points[i].y * v0 + points[i + 1].y * v1 + points[i + 2].y * v2 + points[i + 3].y * v3);
+		int s = points.size();
+		float x = 0.5f * (points[i%s].x * v0 + points[(i + 1)%s].x * v1 + points[(i + 2)%s].x * v2 + points[(i + 3)%s].x * v3);
+		float y = 0.5f * (points[i%s].y * v0 + points[(i + 1)%s].y * v1 + points[(i + 2)%s].y * v2 + points[(i + 3)%s].y * v3);
 		return { x,y };
 	}
 
@@ -95,6 +97,14 @@ public:
 			canvas->Draw(point);
 		}
 	}
+
+	void drawByT(olc::PixelGameEngine* canvas, bool cyclic=false) {
+		int stop = cyclic ? points.size() : points.size() - 3;
+		for (float t = 0; t < stop; t += 0.01f) {
+			auto point = getPointByT(t);
+			canvas->Draw(point);
+		}
+	}
 };
 
 class Track {
@@ -109,9 +119,9 @@ public:
 	void recalculate() {
 		middle.points = points;
 		middle.recalculate();
-		inner.points.resize(points.size()-3);
-		outer.points.resize(points.size()-3);
-		for (int i = 0; i < points.size() - 3; i++) {
+		inner.points.resize(points.size());
+		outer.points.resize(points.size());
+		for (int i = 0; i < points.size(); i++) {
 			auto dir = middle.getDirByT(i);
 			dir = (dir.norm()) * breadth;
 			outer.points[i] = points[i] + dir;
@@ -125,6 +135,12 @@ public:
 		outer.draw(canvas);
 		middle.draw(canvas);
 		inner.draw(canvas);
+	}
+
+	void drawByT(olc::PixelGameEngine* canvas, bool cyclic=false) {
+		outer.drawByT(canvas,cyclic);
+		middle.drawByT(canvas,cyclic);
+		inner.drawByT(canvas,cyclic);
 	}
 };
 
@@ -152,11 +168,17 @@ public:
 	bool OnUserCreate() override
 	{
 		// Called once at the start, so create things here
-		int x = 100;
+		//int x = 100;
+		//for (int i = 0; i < 10; i++) {
+		//	track.points.push_back(olc::vf2d(x, 300));
+		//	x += 50;
+		//}
+
 		for (int i = 0; i < 10; i++) {
-			track.points.push_back(olc::vf2d(x, 300));
-			x += 50;
+			float a = 3.1415 * 2 * (i / 10.0f);
+			track.points.push_back({ cosf(a) * 200+300, sinf(a) * 200+300 });
 		}
+
 		track.recalculate();
 		return true;
 		
@@ -187,7 +209,7 @@ public:
 		drawPoints(track.points);
 		drawPoints(track.inner.points);
 		drawPoints(track.outer.points);
-		track.draw(this);
+		track.drawByT(this,true);
 
 		auto carPos = track.middle.getPointByDistance(carDistance);
 		auto carDir = (track.middle.getDirByDistance(carDistance).norm())*10;
