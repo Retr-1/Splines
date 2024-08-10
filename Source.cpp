@@ -103,14 +103,14 @@ public:
 	Spline outer;
 	Spline inner;
 
-	int breadth = 10;
+	int breadth = 40;
 	std::vector<olc::vf2d> points;
 	
 	void recalculate() {
 		middle.points = points;
 		middle.recalculate();
-		inner.points.resize(points.size());
-		outer.points.resize(points.size());
+		inner.points.resize(points.size()-3);
+		outer.points.resize(points.size()-3);
 		for (int i = 0; i < points.size() - 3; i++) {
 			auto dir = middle.getDirByT(i);
 			dir = (dir.norm()) * breadth;
@@ -131,13 +131,13 @@ public:
 // Override base class with your custom functionality
 class Window : public olc::PixelGameEngine
 {
-	Spline spline;
+	Track track;
 	int selected = -1;
 	float carDistance = 0;
 
 	void drawPoints(const std::vector<olc::vf2d>& points) {
-		for (int i = 0; i< spline.points.size(); i++) {
-			FillCircle(spline.points[i], 10, i==selected ? olc::YELLOW : olc::GREY);
+		for (int i = 0; i< points.size(); i++) {
+			FillCircle(points[i], 10, i==selected ? olc::YELLOW : olc::GREY);
 		}
 	}
 
@@ -154,10 +154,10 @@ public:
 		// Called once at the start, so create things here
 		int x = 100;
 		for (int i = 0; i < 10; i++) {
-			spline.points.push_back(olc::vf2d(x, 300));
+			track.points.push_back(olc::vf2d(x, 300));
 			x += 50;
 		}
-		spline.recalculate();
+		track.recalculate();
 		return true;
 		
 	}
@@ -166,14 +166,13 @@ public:
 	{
 
 		if (GetMouse(olc::Mouse::LEFT).bHeld && selected != -1) {
-			spline.points[selected] = GetMousePos();
-			spline.recalculate();
-			std::cout << "Spline length: " << spline.totalLength << '\n';
+			track.points[selected] = GetMousePos();
+			track.recalculate();
 		}
 		else {
 			selected = -1;
-			for (int i = 0; i < spline.points.size(); i++) {
-				auto p = spline.points[i];
+			for (int i = 0; i < track.points.size(); i++) {
+				auto p = track.points[i];
 				auto m = GetMousePos();
 				float d = sqrtf(powf(m.x - p.x, 2) + powf(m.y - p.y, 2));
 				if (d < 10)
@@ -182,14 +181,16 @@ public:
 		}
 
 		carDistance += fElapsedTime * 100;
-		carDistance = fmodf(carDistance, spline.totalLength);
+		carDistance = fmodf(carDistance, track.middle.totalLength);
 
 		Clear(olc::BLACK);
-		drawPoints(spline.points);
-		spline.draw(this);
+		drawPoints(track.points);
+		drawPoints(track.inner.points);
+		drawPoints(track.outer.points);
+		track.draw(this);
 
-		auto carPos = spline.getPointByDistance(carDistance);
-		auto carDir = (spline.getDirByDistance(carDistance).norm())*10;
+		auto carPos = track.middle.getPointByDistance(carDistance);
+		auto carDir = (track.middle.getDirByDistance(carDistance).norm())*10;
 		auto carN = olc::vf2d(carDir.y, -carDir.x);
 		FillTriangle(carPos + carN, carPos - carN, carPos + carDir, olc::RED);
 
