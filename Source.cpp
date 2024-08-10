@@ -124,8 +124,9 @@ public:
 		for (int i = 0; i < points.size(); i++) {
 			auto dir = middle.getDirByT(i);
 			dir = (dir.norm()) * breadth;
-			outer.points[i] = points[i] + dir;
-			inner.points[i] = points[i] - dir;
+			auto dirN = olc::vf2d(dir.y, -dir.x);
+			outer.points[i] = points[i] + dirN;
+			inner.points[i] = points[i] - dirN;
 		}
 		outer.recalculate();
 		inner.recalculate();
