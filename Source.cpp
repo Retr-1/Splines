@@ -88,6 +88,44 @@ public:
 			totalLength += lengths[i];
 		}
 	}
+
+	void draw(olc::PixelGameEngine* canvas) {
+		for (float t = 0; t < totalLength; t += 1) {
+			auto point = getPointByDistance(t);
+			canvas->Draw(point);
+		}
+	}
+};
+
+class Track {
+public:
+	Spline middle;
+	Spline outer;
+	Spline inner;
+
+	int breadth = 10;
+	std::vector<olc::vf2d> points;
+	
+	void recalculate() {
+		middle.points = points;
+		middle.recalculate();
+		inner.points.resize(points.size());
+		outer.points.resize(points.size());
+		for (int i = 0; i < points.size() - 3; i++) {
+			auto dir = middle.getDirByT(i);
+			dir = (dir.norm()) * breadth;
+			outer.points[i] = points[i] + dir;
+			inner.points[i] = points[i] - dir;
+		}
+		outer.recalculate();
+		inner.recalculate();
+	}
+
+	void draw(olc::PixelGameEngine* canvas) {
+		outer.draw(canvas);
+		middle.draw(canvas);
+		inner.draw(canvas);
+	}
 };
 
 // Override base class with your custom functionality
@@ -148,11 +186,8 @@ public:
 
 		Clear(olc::BLACK);
 		drawPoints(spline.points);
-		for (float t = 0; t < spline.points.size() - 3; t += 0.01f) {
-			auto point = spline.getPointByT(t);
-			//std::cout << point.str();
-			Draw(point);
-		}
+		spline.draw(this);
+
 		auto carPos = spline.getPointByDistance(carDistance);
 		auto carDir = (spline.getDirByDistance(carDistance).norm())*10;
 		auto carN = olc::vf2d(carDir.y, -carDir.x);
