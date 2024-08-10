@@ -114,10 +114,9 @@ public:
 	Spline inner;
 
 	int breadth = 40;
-	std::vector<olc::vf2d> points;
+	std::vector<olc::vf2d>& points = middle.points;
 	
 	void recalculate() {
-		middle.points = points;
 		middle.recalculate();
 		inner.points.resize(points.size());
 		outer.points.resize(points.size());
@@ -142,6 +141,12 @@ public:
 		outer.drawByT(canvas,cyclic);
 		middle.drawByT(canvas,cyclic);
 		inner.drawByT(canvas,cyclic);
+	}
+	
+	void fill(olc::PixelGameEngine* canvas) {
+		for (float t = 0; t < points.size(); t += 0.01f) {
+
+		}
 	}
 };
 
