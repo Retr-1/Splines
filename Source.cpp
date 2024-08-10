@@ -144,9 +144,16 @@ public:
 	}
 	
 	void fill(olc::PixelGameEngine* canvas) {
-		for (float t = 0; t < points.size(); t += 0.01f) {
-
+		const float step = 0.25f;
+		for (float t = 0; t < points.size(); t += step) {
+			auto p1 = outer.getPointByT(t);
+			auto p2 = inner.getPointByT(t);
+			auto p3 = inner.getPointByT(t + step);
+			auto p4 = outer.getPointByT(t + step);
+			canvas->FillTriangle(p1, p2, p3, olc::DARK_RED);
+			canvas->FillTriangle(p1, p4, p3, olc::DARK_RED);
 		}
+		middle.drawByT(canvas, true);
 	}
 };
 
@@ -212,10 +219,12 @@ public:
 		carDistance = fmodf(carDistance, track.middle.totalLength);
 
 		Clear(olc::BLACK);
+		track.fill(this);
 		drawPoints(track.points);
 		drawPoints(track.inner.points);
 		drawPoints(track.outer.points);
-		track.drawByT(this,true);
+		//track.drawByT(this,true);
+
 
 		auto carPos = track.middle.getPointByDistance(carDistance);
 		auto carDir = (track.middle.getDirByDistance(carDistance).norm())*10;
